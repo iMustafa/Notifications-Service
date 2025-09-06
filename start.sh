@@ -41,8 +41,8 @@ until $COMPOSE exec -T postgres sh -c "pg_isready -U postgres -h localhost" >/de
 done
 echo "Postgres is ready."
 
-echo "Seeding database..."
-$COMPOSE run --rm api sh -lc "PNPM_YES=true corepack pnpm install && PNPM_YES=true corepack pnpm dlx tsx packages/db/src/seed.ts"
+echo "Running migrations..."
+$COMPOSE run --rm api sh -lc 'cd packages/db && PNPM_YES=true corepack pnpm install && corepack pnpm dlx sequelize-cli db:migrate --url "$POSTGRES_URL"'
 
 echo "Starting services (api, orchestrator, workers, web)..."
 $COMPOSE up -d api orchestrator worker-email worker-inapp web

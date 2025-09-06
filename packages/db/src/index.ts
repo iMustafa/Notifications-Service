@@ -1,6 +1,2 @@
-import { Pool } from 'pg';
-
-export function createPgPool(connectionString: string | undefined): Pool {
-  return new Pool({ connectionString });
-}
-
+export * from './connection';
+export * from './models';

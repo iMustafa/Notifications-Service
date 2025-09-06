@@ -1,10 +1,10 @@
 import amqplib from 'amqplib';
-import { Pool } from 'pg';
+import { initDb, Outbox } from '@pkg/db';
 import pino from 'pino';
 import { exchanges } from '@pkg/mq';
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
-const pool = new Pool({ connectionString: process.env.POSTGRES_URL });
+await initDb();
 
 export async function runPublisher(): Promise<void> {
   const conn = await amqplib.connect(process.env.RABBIT_URL!);
@@ -13,11 +13,9 @@ export async function runPublisher(): Promise<void> {
 
   setInterval(async () => {
     try {
-      const { rows } = await pool.query(
-        `SELECT id, payload FROM outbox WHERE published = FALSE ORDER BY id LIMIT 100`
-      );
+      const rows = await Outbox.findAll({ where: { published: false }, order: [['id','ASC']], limit: 100 });
       for (const row of rows) {
-        const payload = row.payload;
+        const payload = row.get('payload') as any;
         const routingKey = payload.name || 'event.unknown';
         ch.publish(
           exchanges.events.name,
@@ -25,7 +23,7 @@ export async function runPublisher(): Promise<void> {
           Buffer.from(JSON.stringify(payload)),
           { persistent: true }
         );
-        await pool.query(`UPDATE outbox SET published = TRUE WHERE id = $1`, [row.id]);
+        await row.update({ published: true });
       }
     } catch (err) {
       logger.error({ err }, 'outbox publisher tick failed');

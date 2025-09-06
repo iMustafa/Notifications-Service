@@ -54,22 +54,17 @@ async function run(): Promise<void> {
 
         for (const u of users) {
           const pref = await pool.query(
-            `SELECT enabled, quiet_hours FROM channel_preferences WHERE tenant_id=$1 AND user_id=$2 AND channel=$3`,
+            `SELECT enabled FROM channel_preferences WHERE tenant_id=$1 AND user_id=$2 AND channel=$3`,
             [u.tenant_id, u.id, plan.primary]
           );
           const enabled = pref.rows[0]?.enabled ?? true;
-          const qh = pref.rows[0]?.quiet_hours;
 
           console.log({
             enabled,
-            qh,
             overrideChannel
           });
           
           if (!enabled) continue;
-          if (plan.constraints?.quietHours && withinQuietHours(qh, u.timezone)) {
-            continue;
-          }
 
           if (plan.constraints?.rateLimitBucket) {
             const ok = await rateLimit(plan.constraints.rateLimitBucket, `${u.id}:${plan.primary}`);

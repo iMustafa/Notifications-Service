@@ -14,7 +14,7 @@
     "dev:worker-push": "pnpm --filter @apps/worker-push dev",
     "dev:worker-inapp": "pnpm --filter @apps/worker-inapp dev",
     "dev:web": "pnpm --filter @apps/web dev",
-    "seed": "tsx packages/db/src/seed.ts"
+    "migrate:up": "pnpm --filter @pkg/db migrate:up"
   },
   "pnpm": {
     "catalogs": {
