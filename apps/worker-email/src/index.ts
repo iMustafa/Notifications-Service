@@ -39,6 +39,7 @@ async function run(): Promise<void> {
           return;
         }
 
+        logger.info({ job }, 'fetching template');
         const t = await pool.query(
           `SELECT * FROM templates WHERE key=$1 AND channel='email' AND locale=$2 ORDER BY version DESC LIMIT 1`,
           [job.plan.templateKey, job.recipients[0]?.locale ?? 'en']
