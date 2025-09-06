@@ -1,3 +1,7 @@
+import { AuthEventKeys } from '../events/auth/_authEventKeys';
+import { BillingEventKeys } from '../events/billing/_billingEventKeys';
+
 export type EventKey =
-  'billing.invoice.created' |
-  'auth.password.reset.requested';
+  AuthEventKeys |
+  BillingEventKeys;
+  

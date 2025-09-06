@@ -17,3 +17,4 @@ export const passwordResetRequestedPayload = z.object({
   userEmail: z.string().email().optional(),
   code: z.string().min(4).max(12).optional()
 });
+

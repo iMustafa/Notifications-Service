@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { getTemplateSeeds } from './seeders/getTemplateSeeds';
 
 async function seed() {
   const pool = new Pool({ connectionString: process.env.POSTGRES_URL });
@@ -47,39 +48,25 @@ async function seed() {
       ['t_demo', 'u_2', 'billing.invoice.created', false]
     );
 
-    // Templates: invoice (email/inapp), password reset (email/sms)
-    await pool.query(
-      `INSERT INTO templates(key, version, channel, locale, subject, body)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       ON CONFLICT (key, version, channel, locale) DO NOTHING`,
-      [
-        'billing.invoice.created',
-        1,
-        'email',
-        'en',
-        'Your invoice {{invoiceId}}',
-        '<h1>Thanks!</h1><p>Amount: {{amount}} {{currency}}</p><p>Invoice: {{invoiceId}}</p>'
-      ]
-    );
-    await pool.query(
-      `INSERT INTO templates(key, version, channel, locale, body)
-       VALUES ($1,$2,$3,$4,$5)
-       ON CONFLICT (key, version, channel, locale) DO NOTHING`,
-      ['billing.invoice.created', 1, 'inapp', 'en', 'Invoice {{invoiceId}}: {{amount}} {{currency}}']
-    );
-
-    await pool.query(
-      `INSERT INTO templates(key, version, channel, locale, subject, body)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       ON CONFLICT (key, version, channel, locale) DO NOTHING`,
-      ['auth.password.reset', 1, 'email', 'en', 'Password reset', '<p>Click to reset your password</p>']
-    );
-    await pool.query(
-      `INSERT INTO templates(key, version, channel, locale, body)
-       VALUES ($1,$2,$3,$4,$5)
-       ON CONFLICT (key, version, channel, locale) DO NOTHING`,
-      ['auth.password.reset', 1, 'sms', 'en', 'Reset code: {{code}}']
-    );
+    // Templates from core event template seeds (auto-extend when new events are added in core)
+    // Switch to migrations
+    for (const t of getTemplateSeeds()) {
+      if (t.subject) {
+        await pool.query(
+          `INSERT INTO templates(key, version, channel, locale, subject, body)
+           VALUES ($1,$2,$3,$4,$5,$6)
+           ON CONFLICT (key, version, channel, locale) DO NOTHING`,
+          [t.key, t.version, t.channel, t.locale, t.subject, t.body]
+        );
+      } else {
+        await pool.query(
+          `INSERT INTO templates(key, version, channel, locale, body)
+           VALUES ($1,$2,$3,$4,$5)
+           ON CONFLICT (key, version, channel, locale) DO NOTHING`,
+          [t.key, t.version, t.channel, t.locale, t.body]
+        );
+      }
+    }
 
     await pool.query('COMMIT');
     console.log('Seed complete.');

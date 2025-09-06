@@ -373,6 +373,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@pkg/core':
+        specifier: workspace:*
+        version: link:../core
       pg:
         specifier: 'catalog:'
         version: 8.16.3
