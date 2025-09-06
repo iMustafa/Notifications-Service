@@ -1,0 +1,1 @@
+export type Channel = 'email' | 'sms' | 'push' | 'inapp';

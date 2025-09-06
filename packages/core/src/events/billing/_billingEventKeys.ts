@@ -1,0 +1,1 @@
+export type BillingEventKeys = 'billing.invoice.created';
