@@ -1,0 +1,118 @@
+import amqplib from 'amqplib';
+import { Pool } from 'pg';
+import { createClient } from 'redis';
+import pino from 'pino';
+import { exchanges, setup } from '@pkg/mq';
+import type { DomainEvent, DeliveryJob, Channel } from '@pkg/core';
+import { getEventDefinition } from '@pkg/core';
+import crypto from 'crypto';
+
+const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const pool = new Pool({ connectionString: process.env.POSTGRES_URL });
+const redis = createClient({ url: process.env.REDIS_URL });
+
+function withinQuietHours(qh: any, userTz: string): boolean {
+  if (!qh) return false;
+  const now = new Date();
+  const time = now
+    .toLocaleTimeString('en-GB', { hour12: false, timeZone: userTz || 'UTC' })
+    .slice(0, 5);
+  return qh.start <= qh.end ? time >= qh.start && time < qh.end : time >= qh.start || time < qh.end;
+}
+
+async function rateLimit(bucket: string, key: string, limitPerDay = 2): Promise<boolean> {
+  const k = `rl:${bucket}:${key}:${new Date().toISOString().slice(0, 10)}`;
+  const cur = await redis.incr(k);
+  if (cur === 1) await redis.expire(k, 86400);
+  return cur <= limitPerDay;
+}
+
+async function run(): Promise<void> {
+  await redis.connect();
+  const conn = await amqplib.connect(process.env.RABBIT_URL!);
+  const ch = await conn.createChannel();
+  await setup(ch);
+  await ch.prefetch(50);
+
+  await ch.consume(
+    'orchestrator.events.q',
+    async msg => {
+      if (!msg) return;
+      const event = JSON.parse(msg.content.toString()) as DomainEvent;
+
+      try {
+        const userIds = event.targets.userIds ?? [];
+        const { rows: users } = await pool.query(
+          `SELECT id,email,phone,locale,timezone,tenant_id FROM users WHERE id = ANY($1)`,
+          [userIds]
+        );
+
+        const def = getEventDefinition(event.name);
+        const basePlan = def?.defaultPlan ?? { primary: 'inapp', templateKey: event.name };
+        const overrideChannel = (event).overrides?.channelOverride as Channel | undefined;
+        const plan = overrideChannel ? { ...basePlan, primary: overrideChannel, fallbacks: [] } : basePlan;
+
+        for (const u of users) {
+          const pref = await pool.query(
+            `SELECT enabled, quiet_hours FROM channel_preferences WHERE tenant_id=$1 AND user_id=$2 AND channel=$3`,
+            [u.tenant_id, u.id, plan.primary]
+          );
+          const enabled = pref.rows[0]?.enabled ?? true;
+          const qh = pref.rows[0]?.quiet_hours;
+
+          console.log({
+            enabled,
+            qh,
+            overrideChannel
+          });
+          
+          if (!enabled) continue;
+          if (plan.constraints?.quietHours && withinQuietHours(qh, u.timezone)) {
+            continue;
+          }
+
+          if (plan.constraints?.rateLimitBucket) {
+            const ok = await rateLimit(plan.constraints.rateLimitBucket, `${u.id}:${plan.primary}`);
+            if (!ok) continue;
+          }
+
+          const job: DeliveryJob = {
+            jobId: crypto.randomUUID(),
+            eventId: event.id,
+            tenantId: event.tenantId,
+            channel: plan.primary,
+            plan: { ...plan },
+            recipients: [
+              {
+                userId: u.id,
+                email: u.email,
+                phone: u.phone,
+                locale: u.locale,
+                timezone: u.timezone,
+              },
+            ],
+            data: event.payload,
+            priority: event.priority ?? 'normal',
+            traceId: event.traceId ?? event.id,
+          };
+
+          ch.publish(exchanges.jobs.name, plan.primary, Buffer.from(JSON.stringify(job)), {
+            persistent: true,
+            priority: job.priority === 'high' ? 8 : 4,
+          });
+        }
+
+        ch.ack(msg);
+      } catch (err) {
+        ch.nack(msg, false, true);
+      }
+    },
+    { noAck: false }
+  );
+}
+
+run().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
+

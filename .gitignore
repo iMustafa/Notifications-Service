@@ -1,0 +1,13 @@
+.pnpm-store
+apps/*/node_modules
+apps/*/dist
+apps/*/build
+apps/*/coverage
+apps/*/logs
+apps/*/tmp
+apps/*/public
+apps/*/public
+
+packages/*/node_modules
+
+node_modules

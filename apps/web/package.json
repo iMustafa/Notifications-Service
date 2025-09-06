@@ -1,0 +1,27 @@
+{
+  "name": "@apps/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "@pkg/core": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "axios": "catalog:",
+    "@tanstack/react-query": "catalog:"
+  },
+  "devDependencies": {
+    "vite": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "typescript": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@types/node": "catalog:"
+  }
+}
+

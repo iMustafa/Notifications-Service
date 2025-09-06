@@ -1,0 +1,35 @@
+{
+  "name": "notifications",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "pnpm@9.7.0",
+  "scripts": {
+    "dev:api": "pnpm --filter @apps/api dev",
+    "dev:orchestrator": "pnpm --filter @apps/orchestrator dev",
+    "dev:worker-email": "pnpm --filter @apps/worker-email dev",
+    "dev:worker-sms": "pnpm --filter @apps/worker-sms dev",
+    "dev:worker-push": "pnpm --filter @apps/worker-push dev",
+    "dev:worker-inapp": "pnpm --filter @apps/worker-inapp dev",
+    "dev:web": "pnpm --filter @apps/web dev",
+    "seed": "tsx packages/db/src/seed.ts"
+  },
+  "pnpm": {
+    "catalogs": {
+      "default": {
+        "typescript": "^5.4.0",
+        "tsx": "^4.19.0",
+        "amqplib": "^0.10.3",
+        "pg": "^8.12.0",
+        "redis": "^4.7.0",
+        "pino": "^9.1.0",
+        "express": "^4.19.2",
+        "zod": "^3.23.8",
+        "handlebars": "^4.7.8"
+      }
+    }
+  }
+}
+

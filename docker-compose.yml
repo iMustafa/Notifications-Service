@@ -1,0 +1,127 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: notifications
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./migrations:/docker-entrypoint-initdb.d
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  api:
+    image: node:20
+    working_dir: /app
+    command: sh -c "corepack pnpm --filter @apps/api dev"
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+      - pnpm_store:/root/.local/share/pnpm
+    ports:
+      - "8080:8080"
+
+  orchestrator:
+    image: node:20
+    working_dir: /app
+    command: sh -c "corepack pnpm --filter @apps/orchestrator dev"
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+      - pnpm_store:/root/.local/share/pnpm
+
+  worker-email:
+    image: node:20
+    working_dir: /app
+    command: sh -c "corepack pnpm --filter @apps/worker-email dev"
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+      - pnpm_store:/root/.local/share/pnpm
+
+  worker-sms:
+    image: node:20
+    working_dir: /app
+    command: sh -c "corepack pnpm --filter @apps/worker-sms dev"
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+      - pnpm_store:/root/.local/share/pnpm
+
+  worker-push:
+    image: node:20
+    working_dir: /app
+    command: sh -c "corepack pnpm --filter @apps/worker-push dev"
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+      - pnpm_store:/root/.local/share/pnpm
+
+  worker-inapp:
+    image: node:20
+    working_dir: /app
+    command: sh -c "corepack pnpm --filter @apps/worker-inapp dev"
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+      - pnpm_store:/root/.local/share/pnpm
+
+  web:
+    image: node:20
+    working_dir: /app
+    command: sh -c "corepack pnpm --filter @apps/web dev"
+    environment:
+      - VITE_API_URL=http://api:8080
+    depends_on:
+      - api
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+      - pnpm_store:/root/.local/share/pnpm
+    ports:
+      - "5173:5173"
+
+volumes:
+  node_modules:
+  pnpm_store:
+
