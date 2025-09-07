@@ -1,24 +1,14 @@
-import amqplib from 'amqplib';
-import { Pool } from 'pg';
-import { createClient } from 'redis';
-import pino from 'pino';
 import { exchanges, setup } from '@notifications/mq';
 import type { DomainEvent, DeliveryJob, Channel } from '@notifications/core';
 import { getEventDefinition } from '@notifications/core';
+import { initDb, User, ChannelPreference, } from '@notifications/db';
+
+import amqplib from 'amqplib';
+import { createClient } from 'redis';
 import crypto from 'crypto';
+import { Op } from 'sequelize';
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
-const pool = new Pool({ connectionString: process.env.POSTGRES_URL });
 const redis = createClient({ url: process.env.REDIS_URL });
-
-function withinQuietHours(qh: any, userTz: string): boolean {
-  if (!qh) return false;
-  const now = new Date();
-  const time = now
-    .toLocaleTimeString('en-GB', { hour12: false, timeZone: userTz || 'UTC' })
-    .slice(0, 5);
-  return qh.start <= qh.end ? time >= qh.start && time < qh.end : time >= qh.start || time < qh.end;
-}
 
 async function rateLimit(bucket: string, key: string, limitPerDay = 2): Promise<boolean> {
   const k = `rl:${bucket}:${key}:${new Date().toISOString().slice(0, 10)}`;
@@ -28,8 +18,10 @@ async function rateLimit(bucket: string, key: string, limitPerDay = 2): Promise<
 }
 
 async function run(): Promise<void> {
+  await initDb();
   await redis.connect();
   const conn = await amqplib.connect(process.env.RABBIT_URL!);
+
   const ch = await conn.createChannel();
   await setup(ch);
   await ch.prefetch(50);
@@ -42,28 +34,25 @@ async function run(): Promise<void> {
 
       try {
         const userIds = event.targets.userIds ?? [];
-        const { rows: users } = await pool.query(
-          `SELECT id,email,phone,locale,timezone,tenant_id FROM users WHERE id = ANY($1)`,
-          [userIds]
-        );
+        const users = await User.findAll({
+          where: { id: { [Op.in]: userIds } },
+          attributes: ['id', 'email', 'phone', 'locale', 'timezone', 'tenant_id']
+        });
 
         const def = getEventDefinition(event.name);
         const basePlan = def?.defaultPlan ?? { primary: 'inapp', templateKey: event.name };
         const overrideChannel = (event).overrides?.channelOverride as Channel | undefined;
         const plan = overrideChannel ? { ...basePlan, primary: overrideChannel, fallbacks: [] } : basePlan;
 
-        for (const u of users) {
-          const pref = await pool.query(
-            `SELECT enabled FROM channel_preferences WHERE tenant_id=$1 AND user_id=$2 AND channel=$3`,
-            [u.tenant_id, u.id, plan.primary]
-          );
-          const enabled = pref.rows[0]?.enabled ?? true;
+        for (const u of users as any[]) {
+          const pref = await ChannelPreference.findOne({ where: { tenant_id: u.tenant_id, user_id: u.id, channel: plan.primary }, attributes: ['enabled'] });
+          const enabled = (pref as any)?.enabled ?? true;
 
           console.log({
             enabled,
             overrideChannel
           });
-          
+
           if (!enabled) continue;
 
           if (plan.constraints?.rateLimitBucket) {

@@ -14,7 +14,9 @@
     "redis": "catalog:",
     "pino": "catalog:",
     "@notifications/mq": "workspace:*",
-    "@notifications/core": "workspace:*"
+    "@notifications/core": "workspace:*",
+    "@notifications/db": "workspace:*",
+    "sequelize": "catalog:"
   },
   "devDependencies": {
     "tsx": "catalog:",

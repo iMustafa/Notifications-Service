@@ -15,7 +15,8 @@
     "pino": "catalog:",
     "@notifications/core": "workspace:*",
     "@notifications/mq": "workspace:*",
-    "@notifications/templates": "workspace:*"
+    "@notifications/templates": "workspace:*",
+    "@notifications/db": "workspace:*"
   },
   "devDependencies": {
     "tsx": "catalog:",

@@ -1,12 +1,12 @@
 import amqplib from 'amqplib';
-import { Pool } from 'pg';
 import { createClient } from 'redis';
 import pino from 'pino';
 import type { DeliveryJob } from '@notifications/core';
 import { renderEmail } from '@notifications/templates';
+import { initDb } from '@notifications/db';
+import { Template, DeliveryStatus, Notification } from '@notifications/db';
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
-const pool = new Pool({ connectionString: process.env.POSTGRES_URL });
 const redis = createClient({ url: process.env.REDIS_URL });
 
 async function sendEmail(_providerCfg: any, _to: string, _subject: string, _html: string): Promise<string> {
@@ -16,7 +16,9 @@ async function sendEmail(_providerCfg: any, _to: string, _subject: string, _html
 
 async function run(): Promise<void> {
   await redis.connect();
+  await initDb();
   const conn = await amqplib.connect(process.env.RABBIT_URL!);
+
   const ch = await conn.createChannel();
   await ch.assertQueue('jobs.email.q', { durable: true });
   await ch.prefetch(50);
@@ -40,18 +42,22 @@ async function run(): Promise<void> {
         }
 
         logger.info({ job }, 'fetching template');
-        const t = await pool.query(
-          `SELECT * FROM templates WHERE key=$1 AND channel='email' AND locale=$2 ORDER BY version DESC LIMIT 1`,
-          [job.plan.templateKey, job.recipients[0]?.locale ?? 'en']
-        );
+        const t = await Template.findOne({
+          where: {
+            key: job.plan.templateKey,
+            channel: 'email',
+            locale: job.recipients[0]?.locale ?? 'en'
+          },
+          order: [['version', 'DESC']]
+        });
 
-        if (t.rowCount === 0) {
+        if (!t) {
           logger.warn({ template: job.plan.templateKey }, 'template not found');
           ch.nack(msg, false, false);
           return;
         }
 
-        const { subject, body } = t.rows[0];
+        const { subject, body } = t;
         const html = renderEmail(body, job.data);
         const to = job.recipients[0]?.email;
         if (!to) {
@@ -60,27 +66,31 @@ async function run(): Promise<void> {
           return;
         }
 
+        if (!job.recipients[0]?.userId) {
+          logger.warn({ job }, 'no user id found');
+          ch.ack(msg);
+          return;
+        }
+
         const providerMsgId = await sendEmail({}, to, subject ?? '', html);
 
-        await pool.query(
-          `
-          WITH ins AS (
-            INSERT INTO notifications(id, tenant_id, user_id, channel, template_key, template_version, payload, status)
-            VALUES ($1,$2,$3,'email',$4,$5,$6,'sent') RETURNING id
-          )
-          INSERT INTO delivery_status(notification_id, provider, status, meta)
-          SELECT id, 'email', 'sent', jsonb_build_object('providerMsgId', $7::text) FROM ins
-        `,
-          [
-            job.jobId,
-            job.tenantId,
-            job.recipients[0]?.userId,
-            job.plan.templateKey,
-            t.rows[0].version,
-            job.data,
-            providerMsgId,
-          ]
-        );
+        await Notification.create({
+          id: job.jobId,
+          tenant_id: job.tenantId,
+          user_id: job.recipients[0]?.userId,
+          channel: 'email',
+          template_key: job.plan.templateKey,
+          template_version: t.version,
+          payload: job.data,
+          status: 'sent'
+        });
+
+        await DeliveryStatus.create({
+          notification_id: job.jobId,
+          provider: 'email',
+          status: 'sent',
+          meta: { providerMsgId }
+        });
 
         logger.info({ job, providerMsgId }, 'email sent');
 
