@@ -6,9 +6,7 @@ catalogs:
   default:
     typescript: ^5.4.0
     tsx: ^4.19.0
-    "@types/node": ^24.3.1
     amqplib: ^0.10.3
-    pg: ^8.12.0
     redis: ^4.7.0
     pino: ^9.1.0
     express: ^4.19.2
@@ -19,11 +17,11 @@ catalogs:
     react-dom: ^18.3.1
     vite: ^5.4.0
     "@vitejs/plugin-react": ^4.3.0
+    "@types/node": ^24.3.1
     "@types/react": ^18.3.3
     "@types/react-dom": ^18.3.0
     "@types/express": ^5.0.0
     "@types/cors": ^2.8.17
-    "@types/pg": ^8.11.10
     "@types/amqplib": ^0.10.3
     sequelize: ^6.35.1
     axios: ^1.7.7

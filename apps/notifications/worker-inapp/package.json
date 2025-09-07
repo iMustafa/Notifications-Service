@@ -14,7 +14,8 @@
     "redis": "catalog:",
     "pino": "catalog:",
     "@notifications/core": "workspace:*",
-    "@notifications/mq": "workspace:*"
+    "@notifications/mq": "workspace:*",
+    "@notifications/db": "workspace:*"
   },
   "devDependencies": {
     "tsx": "catalog:",

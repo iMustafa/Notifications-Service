@@ -266,6 +266,9 @@ importers:
       '@notifications/core':
         specifier: workspace:*
         version: link:../../../packages/notifications/core
+      '@notifications/db':
+        specifier: workspace:*
+        version: link:../../../packages/notifications/db
       '@notifications/mq':
         specifier: workspace:*
         version: link:../../../packages/notifications/mq
