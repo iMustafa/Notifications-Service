@@ -1,0 +1,17 @@
+{
+  "name": "@notifications/mq",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "amqplib": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "@types/node": "catalog:",
+    "@types/amqplib": "catalog:"
+  }
+}
+

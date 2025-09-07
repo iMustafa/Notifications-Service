@@ -7,14 +7,14 @@
   ],
   "packageManager": "pnpm@9.7.0",
   "scripts": {
-    "dev:api": "pnpm --filter @apps/api dev",
-    "dev:orchestrator": "pnpm --filter @apps/orchestrator dev",
-    "dev:worker-email": "pnpm --filter @apps/worker-email dev",
-    "dev:worker-sms": "pnpm --filter @apps/worker-sms dev",
-    "dev:worker-push": "pnpm --filter @apps/worker-push dev",
-    "dev:worker-inapp": "pnpm --filter @apps/worker-inapp dev",
-    "dev:web": "pnpm --filter @apps/web dev",
-    "migrate:up": "pnpm --filter @pkg/db migrate:up"
+    "dev:api": "pnpm --filter @apps-notifications/api dev",
+    "dev:orchestrator": "pnpm --filter @apps-notifications/orchestrator dev",
+    "dev:worker-email": "pnpm --filter @apps-notifications/worker-email dev",
+    "dev:worker-sms": "pnpm --filter @apps-notifications/worker-sms dev",
+    "dev:worker-push": "pnpm --filter @apps-notifications/worker-push dev",
+    "dev:worker-inapp": "pnpm --filter @apps-notifications/worker-inapp dev",
+    "dev:web": "pnpm --filter @apps-notifications/web dev",
+    "migrate:up": "pnpm --filter @notifications/db migrate:up"
   },
   "pnpm": {
     "catalogs": {

@@ -86,17 +86,17 @@ importers:
 
   .: {}
 
-  apps/api:
+  apps/notifications/api:
     dependencies:
-      '@pkg/core':
+      '@notifications/core':
         specifier: workspace:*
-        version: link:../../packages/core
-      '@pkg/db':
+        version: link:../../../packages/notifications/core
+      '@notifications/db':
         specifier: workspace:*
-        version: link:../../packages/db
-      '@pkg/mq':
+        version: link:../../../packages/notifications/db
+      '@notifications/mq':
         specifier: workspace:*
-        version: link:../../packages/mq
+        version: link:../../../packages/notifications/mq
       amqplib:
         specifier: 'catalog:'
         version: 0.10.9
@@ -138,14 +138,14 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  apps/orchestrator:
+  apps/notifications/orchestrator:
     dependencies:
-      '@pkg/core':
+      '@notifications/core':
         specifier: workspace:*
-        version: link:../../packages/core
-      '@pkg/mq':
+        version: link:../../../packages/notifications/core
+      '@notifications/mq':
         specifier: workspace:*
-        version: link:../../packages/mq
+        version: link:../../../packages/notifications/mq
       amqplib:
         specifier: 'catalog:'
         version: 0.10.9
@@ -175,11 +175,11 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  apps/web:
+  apps/notifications/web:
     dependencies:
-      '@pkg/core':
+      '@notifications/core':
         specifier: workspace:*
-        version: link:../../packages/core
+        version: link:../../../packages/notifications/core
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.87.1(react@18.3.1)
@@ -212,17 +212,17 @@ importers:
         specifier: 'catalog:'
         version: 5.4.19(@types/node@24.3.1)
 
-  apps/worker-email:
+  apps/notifications/worker-email:
     dependencies:
-      '@pkg/core':
+      '@notifications/core':
         specifier: workspace:*
-        version: link:../../packages/core
-      '@pkg/mq':
+        version: link:../../../packages/notifications/core
+      '@notifications/mq':
         specifier: workspace:*
-        version: link:../../packages/mq
-      '@pkg/templates':
+        version: link:../../../packages/notifications/mq
+      '@notifications/templates':
         specifier: workspace:*
-        version: link:../../packages/templates
+        version: link:../../../packages/notifications/templates
       amqplib:
         specifier: 'catalog:'
         version: 0.10.9
@@ -252,14 +252,14 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  apps/worker-inapp:
+  apps/notifications/worker-inapp:
     dependencies:
-      '@pkg/core':
+      '@notifications/core':
         specifier: workspace:*
-        version: link:../../packages/core
-      '@pkg/mq':
+        version: link:../../../packages/notifications/core
+      '@notifications/mq':
         specifier: workspace:*
-        version: link:../../packages/mq
+        version: link:../../../packages/notifications/mq
       amqplib:
         specifier: 'catalog:'
         version: 0.10.9
@@ -289,14 +289,14 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  apps/worker-push:
+  apps/notifications/worker-push:
     dependencies:
-      '@pkg/core':
+      '@notifications/core':
         specifier: workspace:*
-        version: link:../../packages/core
-      '@pkg/mq':
+        version: link:../../../packages/notifications/core
+      '@notifications/mq':
         specifier: workspace:*
-        version: link:../../packages/mq
+        version: link:../../../packages/notifications/mq
       amqplib:
         specifier: 'catalog:'
         version: 0.10.9
@@ -320,14 +320,14 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  apps/worker-sms:
+  apps/notifications/worker-sms:
     dependencies:
-      '@pkg/core':
+      '@notifications/core':
         specifier: workspace:*
-        version: link:../../packages/core
-      '@pkg/mq':
+        version: link:../../../packages/notifications/core
+      '@notifications/mq':
         specifier: workspace:*
-        version: link:../../packages/mq
+        version: link:../../../packages/notifications/mq
       amqplib:
         specifier: 'catalog:'
         version: 0.10.9
@@ -354,7 +354,7 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  packages/cache:
+  packages/notifications/cache:
     dependencies:
       redis:
         specifier: 'catalog:'
@@ -367,7 +367,7 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  packages/core:
+  packages/notifications/core:
     dependencies:
       zod:
         specifier: 'catalog:'
@@ -380,9 +380,9 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  packages/db:
+  packages/notifications/db:
     dependencies:
-      '@pkg/core':
+      '@notifications/core':
         specifier: workspace:*
         version: link:../core
       sequelize:
@@ -402,7 +402,7 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  packages/mq:
+  packages/notifications/mq:
     dependencies:
       amqplib:
         specifier: 'catalog:'
@@ -418,7 +418,7 @@ importers:
         specifier: 'catalog:'
         version: 5.9.2
 
-  packages/templates:
+  packages/notifications/templates:
     dependencies:
       handlebars:
         specifier: 'catalog:'

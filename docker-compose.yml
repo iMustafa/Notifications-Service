@@ -23,7 +23,7 @@ services:
   api:
     image: node:20
     working_dir: /app
-    command: sh -c "corepack pnpm --filter @apps/api dev"
+    command: sh -c "corepack pnpm --filter @apps-notifications/api dev"
     env_file: .env
     depends_on:
       - postgres
@@ -39,7 +39,7 @@ services:
   orchestrator:
     image: node:20
     working_dir: /app
-    command: sh -c "corepack pnpm --filter @apps/orchestrator dev"
+    command: sh -c "corepack pnpm --filter @apps-notifications/orchestrator dev"
     env_file: .env
     depends_on:
       - postgres
@@ -53,7 +53,7 @@ services:
   worker-email:
     image: node:20
     working_dir: /app
-    command: sh -c "corepack pnpm --filter @apps/worker-email dev"
+    command: sh -c "corepack pnpm --filter @apps-notifications/worker-email dev"
     env_file: .env
     depends_on:
       - postgres
@@ -67,7 +67,7 @@ services:
   worker-sms:
     image: node:20
     working_dir: /app
-    command: sh -c "corepack pnpm --filter @apps/worker-sms dev"
+    command: sh -c "corepack pnpm --filter @apps-notifications/worker-sms dev"
     env_file: .env
     depends_on:
       - postgres
@@ -81,7 +81,7 @@ services:
   worker-push:
     image: node:20
     working_dir: /app
-    command: sh -c "corepack pnpm --filter @apps/worker-push dev"
+    command: sh -c "corepack pnpm --filter @apps-notifications/worker-push dev"
     env_file: .env
     depends_on:
       - postgres
@@ -95,7 +95,7 @@ services:
   worker-inapp:
     image: node:20
     working_dir: /app
-    command: sh -c "corepack pnpm --filter @apps/worker-inapp dev"
+    command: sh -c "corepack pnpm --filter @apps-notifications/worker-inapp dev"
     env_file: .env
     depends_on:
       - postgres
@@ -109,7 +109,7 @@ services:
   web:
     image: node:20
     working_dir: /app
-    command: sh -c "corepack pnpm --filter @apps/web dev"
+    command: sh -c "corepack pnpm --filter @apps-notifications/web dev"
     environment:
       - VITE_API_URL=http://api:8080
     depends_on:

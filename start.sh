@@ -42,7 +42,7 @@ done
 echo "Postgres is ready."
 
 echo "Running migrations..."
-$COMPOSE run --rm api sh -lc 'cd packages/db && PNPM_YES=true corepack pnpm install && corepack pnpm dlx sequelize-cli db:migrate --url "$POSTGRES_URL"'
+$COMPOSE run --rm api sh -lc 'cd packages/notifications/db && PNPM_YES=true corepack pnpm install && corepack pnpm dlx sequelize-cli db:migrate --url "$POSTGRES_URL"'
 
 echo "Starting services (api, orchestrator, workers, web)..."
 $COMPOSE up -d api orchestrator worker-email worker-inapp web
